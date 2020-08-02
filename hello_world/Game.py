@@ -5,11 +5,11 @@ class Game:
 
     def __init__(self):
         self.size = 4
-        self.state = np.zeros(self.size)
+        self.state = np.zeros(self.size, dtype=np.float32)
         self.actions = list(range(self.size))
 
     def reset(self):
-        self.state = np.zeros(self.size)
+        self.state = np.zeros(self.size, dtype=np.float32)
 
     def move(self, action):
         reward = 1 if self.state[action] == 0 else -1
