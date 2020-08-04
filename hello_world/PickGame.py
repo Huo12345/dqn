@@ -1,6 +1,6 @@
 import numpy as np
 
-from dqn.Game import Game
+from Game import Game
 
 
 class PickGame(Game):
