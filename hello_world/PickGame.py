@@ -1,12 +1,14 @@
 import numpy as np
 
+from dqn.Game import Game
 
-class Game:
 
-    def __init__(self):
-        self.size = 4
+class PickGame(Game):
+
+    def __init__(self, size=4):
+        self.size = size
         self.state = np.zeros(self.size, dtype=np.float32)
-        self.actions = list(range(self.size))
+        self.possible_actions = list(range(self.size))
 
     def reset(self):
         self.state = np.zeros(self.size, dtype=np.float32)
@@ -16,8 +18,8 @@ class Game:
         self.state[action] = 1
         return reward
 
-    def action(self):
-        return self.actions
+    def actions(self):
+        return self.possible_actions
 
     def is_over(self):
         return all([e == 1 for e in self.state])
