@@ -4,21 +4,27 @@ import abc
 class Game(abc.ABC):
 
     @abc.abstractmethod
-    def initial_state(self):
+    def reset(self):
         pass
 
     @abc.abstractmethod
-    def all_actions(self):
+    def move(self, action):
         pass
 
     @abc.abstractmethod
-    def actions(self, state):
+    def actions(self):
         pass
 
     @abc.abstractmethod
-    def move(self, state, action):
+    def is_over(self):
         pass
 
     @abc.abstractmethod
-    def is_over(self, state):
+    def get_state(self):
+        pass
+
+    def render(self):
+        pass
+
+    def terminate(self):
         pass
