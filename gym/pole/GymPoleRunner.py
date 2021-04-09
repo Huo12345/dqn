@@ -11,8 +11,8 @@ def run_pole():
     offline_model = FeedForwardNetwork()
     offline_model.load_state_dict(online_model.state_dict())
     game = GymGameBridge(env=env, action_parser=DiscreteSpaceParser)
-    dqn = Dqn(online_model, offline_model, game)
-    dqn.train_model()
+    dqn = Dqn(online_model, offline_model, game, demo=10, exploration_decay=0.95)
+    dqn.train_model(epochs=200)
     game.terminate()
 
 

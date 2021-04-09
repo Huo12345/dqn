@@ -20,7 +20,8 @@ class Dqn:
                  exploration_decay=0.9,
                  memory_size=5000,
                  learning_rate=0.001,
-                 momentum=0.9):
+                 momentum=0.9,
+                 demo=0):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         self.online_model = online_model.to(self.device)
@@ -35,6 +36,7 @@ class Dqn:
         self.discount_factor = discount_factor
         self.exploration_factor = initial_exploration_factor
         self.exploration_decay = exploration_decay
+        self.demo = demo
 
     def train_model(self, batch_size=1000, epochs=30, test_rounds=20):
         print("Running training on device %s" % self.device)
@@ -50,7 +52,12 @@ class Dqn:
 
             self.test_model(test_rounds)
 
+            if self.demo != 0 and epoch % self.demo == 0:
+                self.demo_progress()
+
         print('Finished Training')
+        if self.demo != 0:
+            self.demo_progress()
 
     def generate_memories(self, number_of_elements):
         with torch.no_grad():
@@ -58,7 +65,7 @@ class Dqn:
             state = self.game.get_state()
             for i in range(number_of_elements):
                 model_state = torch.tensor(state).to(self.device)
-                prediction = self.offline_model(model_state).cpu()
+                prediction = self.offline_model(model_state.view(1, -1)).cpu()
                 action = torch.argmax(prediction) \
                     if random.uniform(0, 1) > self.exploration_factor \
                     else torch.tensor(random.choice(self.game.actions()))
@@ -75,7 +82,8 @@ class Dqn:
             inputs, action, reward, next_state = [entry.to(self.device) for entry in data]
             self.optimizer.zero_grad()
 
-            output = torch.gather(self.online_model(inputs), index=action.view(-1, 1), dim=1).view(-1)
+            estimations = self.online_model(inputs)
+            output = torch.gather(estimations, index=action.view(-1, 1), dim=1).view(-1)
             with torch.no_grad():
                 offline_prediction = self.offline_model(next_state)
                 expected_reward = reward + torch.max(offline_prediction, dim=1)[0] * self.discount_factor
@@ -84,16 +92,31 @@ class Dqn:
             self.optimizer.step()
 
     def test_model(self, rounds):
+        games = 0
         points = 0
         self.game.reset()
         state = self.game.get_state()
         with torch.no_grad():
             for r in range(rounds):
-                q_values = self.offline_model(torch.tensor(state).to(self.device))
+                q_values = self.offline_model(torch.tensor(state).view(1, -1).to(self.device))
                 action = torch.argmax(q_values).cpu()
                 reward = self.game.move(action)
                 points += reward
                 if self.game.is_over():
                     self.game.reset()
+                    games += 1
                 state = self.game.get_state()
-        print("Average points per round %.3f" % (float(points) / rounds))
+        print("Average points per game %.3f" % (float(points) / games))
+
+    def demo_progress(self):
+        self.game.reset()
+        state = self.game.get_state()
+        self.game.render()
+        with torch.no_grad():
+            while not self.game.is_over():
+                q_values = self.offline_model(torch.tensor(state).view(1, -1).to(self.device))
+                action = torch.argmax(q_values).cpu()
+                self.game.move(action)
+                state = self.game.get_state()
+                self.game.render()
+            self.game.terminate()

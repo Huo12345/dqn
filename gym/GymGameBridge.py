@@ -18,7 +18,7 @@ class GymGameBridge(Game):
         self.current_state = self.env.reset()
 
     def move(self, action):
-        a, reward, b, c = self.env.step(action)
+        a, reward, b, c = self.env.step(action.item())
         self.current_state = a
         self.done = b
         return reward

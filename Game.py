@@ -22,3 +22,9 @@ class Game(abc.ABC):
     @abc.abstractmethod
     def get_state(self):
         pass
+
+    def render(self):
+        pass
+
+    def terminate(self):
+        pass
