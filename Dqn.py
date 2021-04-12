@@ -92,7 +92,7 @@ class Dqn:
             self.optimizer.step()
 
     def test_model(self, rounds):
-        games = 0
+        games = 1
         points = 0
         self.game.reset()
         state = self.game.get_state()

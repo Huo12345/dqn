@@ -6,22 +6,23 @@ from dqn.Game import Game
 
 class GymGameBridge(Game):
 
-    def __init__(self, env, state_parser=None, action_parser=None):
+    def __init__(self, env, state_parser=None, action_parser=None, reward_mapper=None):
         self.env = env
         self.current_state = None
         self.done = False
         self.state_parser = state_parser if state_parser is not None else lambda x: x
         self.action_parser = action_parser if action_parser is not None else lambda x: x
+        self.reward_mapper = reward_mapper if reward_mapper is not None else lambda x, y: x
 
     def reset(self):
         self.done = False
         self.current_state = self.env.reset()
 
     def move(self, action):
-        a, reward, b, c = self.env.step(action.item())
-        self.current_state = a
-        self.done = b
-        return reward
+        observation, reward, done, info = self.env.step(action.item())
+        self.current_state = observation
+        self.done = done
+        return self.reward_mapper(reward, done)
 
     def actions(self):
         return self.action_parser(self.env.action_space)

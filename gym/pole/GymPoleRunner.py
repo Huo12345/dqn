@@ -10,10 +10,14 @@ def run_pole():
     online_model = FeedForwardNetwork()
     offline_model = FeedForwardNetwork()
     offline_model.load_state_dict(online_model.state_dict())
-    game = GymGameBridge(env=env, action_parser=DiscreteSpaceParser)
+    game = GymGameBridge(env=env, action_parser=DiscreteSpaceParser, reward_mapper=reward_mapper)
     dqn = Dqn(online_model, offline_model, game, demo=10, exploration_decay=0.95)
-    dqn.train_model(epochs=200)
+    dqn.train_model(epochs=200, test_rounds=50)
     game.terminate()
+
+
+def reward_mapper(reward, done):
+    return reward if not done else -1.0
 
 
 if __name__ == '__main__':
